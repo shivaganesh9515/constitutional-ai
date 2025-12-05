@@ -110,17 +110,27 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
 
       {mode === 'json' ? (
         <div className="space-y-4">
-          <textarea
-            value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
-            placeholder="Paste your case JSON here..."
-            className="w-full h-96 p-4 font-mono text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-slate-50"
-          />
+          <div className="relative group">
+            <div className="absolute inset-0 bg-blue-50 rounded-lg border-2 border-dashed border-blue-200 pointer-events-none group-hover:border-blue-400 transition" />
+            <textarea
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              placeholder="Paste your case JSON here..."
+              className="w-full h-96 p-6 font-mono text-sm bg-transparent border-none rounded-lg focus:ring-0 relative z-10"
+            />
+            {!jsonInput && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none">
+                <FileText className="w-12 h-12 mb-2 opacity-50" />
+                <p>Paste JSON content here</p>
+              </div>
+            )}
+          </div>
           <button
             onClick={handleJsonSubmit}
-            className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold hover:bg-slate-800 transition"
+            className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white py-4 rounded-lg font-bold hover:from-slate-800 hover:to-slate-700 transition shadow-lg flex items-center justify-center gap-2 group"
           >
             Analyze Case
+            <Upload className="w-4 h-4 group-hover:translate-y-[-2px] transition-transform" />
           </button>
         </div>
       ) : (
