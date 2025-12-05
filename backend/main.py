@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import json
 import time
+import random
 
 from models.schemas import ProcurementCase, AnalysisResult
 from agents.prompts import (
@@ -154,6 +155,37 @@ async def websocket_analyze(websocket: WebSocket):
         # Define wrapper to report progress
         async def run_agent_with_progress(name, prompt):
             await websocket.send_json({"status": "progress", "agent": name, "state": "analyzing"})
+
+            # Simulated "Thinking" steps for better UX
+            thinking_steps = {
+                "transparency": [
+                    "Scanning tender document...",
+                    "Verifying publication date...",
+                    "Checking for missing evaluation reports..."
+                ],
+                "equity": [
+                    "Analyzing MSME status...",
+                    "Calculating price bands...",
+                    "Checking for bid rigging patterns..."
+                ],
+                "legality": [
+                    "Cross-referencing GFR Rule 144...",
+                    "Validating contract clauses...",
+                    "Checking procurement method thresholds..."
+                ],
+                "accountability": [
+                    "Tracing approval chain...",
+                    "Verifying signatory authority...",
+                    "Checking audit trail..."
+                ]
+            }
+
+            # Send initial thought
+            steps = thinking_steps.get(name, ["Analyzing..."])
+            for step in steps:
+                await websocket.send_json({"status": "thought", "agent": name, "message": step})
+                await asyncio.sleep(random.uniform(0.5, 1.0)) # Simulate work
+
             result = await run_agent(case, prompt, context)
             await websocket.send_json({"status": "progress", "agent": name, "state": "completed", "result": result})
             return result
