@@ -1,20 +1,32 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Scale, AlertTriangle, CheckCircle, Loader2, Eye, Users, Shield, Building2, FileText, Gavel } from 'lucide-react'
+import { Scale, AlertTriangle, CheckCircle, Loader2, Eye, Users, Shield, Building2, FileText, Gavel, PlusCircle } from 'lucide-react'
 import ConstitutionalScore from '@/components/ConstitutionalScore'
-import ProgressSteps from '@/components/ProgressSteps'
+import LiveDebate from '@/components/LiveDebate'
+import RiskHeatmap from '@/components/RiskHeatmap'
+import CaseInputForm from '@/components/CaseInputForm'
 
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<any>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [results, setResults] = useState<any>(null)
   const [progressMessage, setProgressMessage] = useState("")
+  const [inputMode, setInputMode] = useState(false)
+
+  // State for Live Debate
   const [agentStatus, setAgentStatus] = useState<any>({
-    transparency: 'pending',
-    equity: 'pending',
-    legality: 'pending',
-    accountability: 'pending'
+    transparency: 'idle',
+    equity: 'idle',
+    legality: 'idle',
+    accountability: 'idle'
+  })
+
+  const [agentMessages, setAgentMessages] = useState<any>({
+    transparency: '',
+    equity: '',
+    legality: '',
+    accountability: ''
   })
   
   const wsRef = useRef<WebSocket | null>(null)
@@ -27,10 +39,10 @@ export default function Home() {
       setSelectedCase(data)
       setResults(null)
       setAgentStatus({
-        transparency: 'pending',
-        equity: 'pending',
-        legality: 'pending',
-        accountability: 'pending'
+        transparency: 'idle',
+        equity: 'idle',
+        legality: 'idle',
+        accountability: 'idle'
       })
     } catch (e) {
       console.error("Failed to fetch sample case", e)
@@ -41,14 +53,20 @@ export default function Home() {
     if (!selectedCase) return
     setAnalyzing(true)
     setResults(null)
-    setProgressMessage("Initializing connection...")
+    setProgressMessage("Initializing Constitutional Bench...")
     
     // Reset statuses
     setAgentStatus({
-      transparency: 'pending',
-      equity: 'pending',
-      legality: 'pending',
-      accountability: 'pending'
+      transparency: 'idle',
+      equity: 'idle',
+      legality: 'idle',
+      accountability: 'idle'
+    })
+    setAgentMessages({
+      transparency: '',
+      equity: '',
+      legality: '',
+      accountability: ''
     })
 
     const ws = new WebSocket('ws://localhost:8000/ws/analyze')
@@ -71,6 +89,12 @@ export default function Home() {
         if (data.state === 'analyzing') {
           setProgressMessage(`${data.agent.charAt(0).toUpperCase() + data.agent.slice(1)} Agent is analyzing...`)
         }
+      } else if (data.status === 'thought') {
+        // Update the "thought bubble" for the agent
+        setAgentMessages((prev: any) => ({
+          ...prev,
+          [data.agent]: data.message
+        }))
       } else if (data.status === 'complete') {
         setResults(data.result)
         setAnalyzing(false)
@@ -87,13 +111,6 @@ export default function Home() {
     }
   }
 
-  const steps = [
-    { id: 'transparency', label: 'Transparency', status: agentStatus.transparency },
-    { id: 'equity', label: 'Equity', status: agentStatus.equity },
-    { id: 'legality', label: 'Legality', status: agentStatus.legality },
-    { id: 'accountability', label: 'Accountability', status: agentStatus.accountability },
-  ]
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Navbar */}
@@ -109,10 +126,18 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto p-6">
         
-        {!selectedCase ? (
+        {inputMode ? (
+          <CaseInputForm
+            onSubmit={(data) => {
+              setSelectedCase(data)
+              setInputMode(false)
+            }}
+            onCancel={() => setInputMode(false)}
+          />
+        ) : !selectedCase ? (
           <div className="py-12">
             <h2 className="text-3xl font-bold text-center mb-8 text-slate-800">Select a Case to Review</h2>
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <button
                 onClick={() => fetchSampleCase('violation')}
                 className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition-all border-l-4 border-red-500 text-left"
@@ -138,6 +163,20 @@ export default function Home() {
                 <p className="text-slate-600 mb-4">₹15 Lakh AMC contract with MSME preference applied.</p>
                 <span className="inline-flex items-center text-green-600 font-medium group-hover:translate-x-1 transition">
                   Load Case <FileText className="w-4 h-4 ml-2" />
+                </span>
+              </button>
+
+              <button
+                onClick={() => setInputMode(true)}
+                className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition-all border-l-4 border-blue-500 text-left"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                  <PlusCircle className="w-24 h-24 text-blue-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Upload Custom Case</h3>
+                <p className="text-slate-600 mb-4">Enter tender details manually or paste JSON for analysis.</p>
+                <span className="inline-flex items-center text-blue-600 font-medium group-hover:translate-x-1 transition">
+                  Create Case <PlusCircle className="w-4 h-4 ml-2" />
                 </span>
               </button>
             </div>
@@ -195,15 +234,12 @@ export default function Home() {
             {/* Right Column: Analysis */}
             <div className="lg:col-span-2">
               {analyzing && !results && (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-                  <div className="mb-8">
-                    <ProgressSteps steps={steps} />
-                  </div>
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                    <h3 className="text-xl font-bold text-slate-800">{progressMessage}</h3>
-                    <p className="text-slate-500 mt-2">Consulting GFR 2017 and Constitution of India...</p>
-                  </div>
+                <div className="space-y-4">
+                  <h3 className="text-xl font-bold text-slate-800 text-center animate-pulse">{progressMessage}</h3>
+                  <LiveDebate
+                    agentStatus={agentStatus}
+                    agentMessages={agentMessages}
+                  />
                 </div>
               )}
 
@@ -231,66 +267,29 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Score & Breakdown */}
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-1">
-                      <ConstitutionalScore score={results.verdict.constitutional_score} />
-                    </div>
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-2">
-                      <h4 className="font-bold text-slate-800 mb-4">Critical Issues Found</h4>
-                      {results.verdict.critical_issues?.length > 0 ? (
-                        <ul className="space-y-2">
-                          {results.verdict.critical_issues.map((issue: string, i: number) => (
-                            <li key={i} className="flex items-start gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
-                              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-                              {issue}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="flex items-center gap-2 text-green-600 bg-green-50 p-4 rounded">
-                          <CheckCircle className="w-5 h-5" />
-                          No critical issues found. Procurement is compliant.
-                        </div>
-                      )}
-                    </div>
+                  {/* Heatmap & Score */}
+                  <div className="grid md:grid-cols-2 gap-6 h-auto">
+                     <ConstitutionalScore score={results.verdict.constitutional_score} />
+                     <RiskHeatmap opinions={results.agent_opinions} />
                   </div>
 
-                  {/* Agent Opinions */}
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {Object.entries(results.agent_opinions).map(([key, agent]: [string, any]) => (
-                      <div key={key} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                          <div className="flex items-center gap-2">
-                            {key === 'transparency' && <Eye className="w-4 h-4 text-blue-500" />}
-                            {key === 'equity' && <Scale className="w-4 h-4 text-purple-500" />}
-                            {key === 'legality' && <Shield className="w-4 h-4 text-red-500" />}
-                            {key === 'accountability' && <Building2 className="w-4 h-4 text-orange-500" />}
-                            <h4 className="font-bold capitalize text-slate-700">{key} Agent</h4>
-                          </div>
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            agent.stance === 'approve' ? 'bg-green-100 text-green-700' :
-                            agent.stance === 'reject' ? 'bg-red-100 text-red-700' :
-                            'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {agent.stance?.toUpperCase() || 'UNKNOWN'}
-                          </span>
-                        </div>
-                        <div className="p-4">
-                          <p className="text-sm text-slate-600 mb-3 italic">"{agent.citizen_explanation}"</p>
-                          
-                          {agent.findings?.length > 0 && (
-                            <div className="space-y-2">
-                              {agent.findings.slice(0, 2).map((finding: any, i: number) => (
-                                <div key={i} className="text-xs bg-slate-50 p-2 rounded border border-slate-100">
-                                  <span className="font-semibold text-slate-700">{finding.rule_violated}:</span> {finding.issue}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Final Agent Grid (Live Debate Style but static) */}
+                  <div className="mt-8">
+                    <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      <Users className="w-5 h-5" /> Agent Opinions
+                    </h4>
+                    <LiveDebate
+                      agentStatus={{
+                        transparency: 'completed',
+                        equity: 'completed',
+                        legality: 'completed',
+                        accountability: 'completed'
+                      }}
+                      agentMessages={{
+                        transparency: '', equity: '', legality: '', accountability: ''
+                      }}
+                      results={results}
+                    />
                   </div>
                 </div>
               )}
