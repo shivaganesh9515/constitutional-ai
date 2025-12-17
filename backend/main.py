@@ -5,14 +5,17 @@ import json
 import time
 import random
 
-from models.schemas import ProcurementCase, AnalysisResult
+from models.schemas import ProcurementCase, AnalysisResult, ParseTenderRequest, ChatRequest, ChatResponse
 from agents.prompts import (
     MASTER_SYSTEM_PROMPT,
     TRANSPARENCY_AGENT_PROMPT,
     EQUITY_AGENT_PROMPT,
     LEGALITY_AGENT_PROMPT,
     ACCOUNTABILITY_AGENT_PROMPT,
-    CHIEF_JUSTICE_PROMPT
+    SOCIAL_JUSTICE_AGENT_PROMPT,
+    CHIEF_JUSTICE_PROMPT,
+    TENDER_PARSER_PROMPT,
+    BENCH_CHAT_PROMPT
 )
 from rag.knowledge_base import get_relevant_rules
 from utils.llm_client import call_ollama, parse_json_response
@@ -94,11 +97,12 @@ async def analyze_case(case: ProcurementCase):
     context = get_relevant_rules(case.estimated_value, case.procurement_method.value)
     
     # Run all agents in parallel
-    transparency, equity, legality, accountability = await asyncio.gather(
+    transparency, equity, legality, accountability, social_justice = await asyncio.gather(
         run_agent(case, TRANSPARENCY_AGENT_PROMPT, context),
         run_agent(case, EQUITY_AGENT_PROMPT, context),
         run_agent(case, LEGALITY_AGENT_PROMPT, context),
-        run_agent(case, ACCOUNTABILITY_AGENT_PROMPT, context)
+        run_agent(case, ACCOUNTABILITY_AGENT_PROMPT, context),
+        run_agent(case, SOCIAL_JUSTICE_AGENT_PROMPT, context)
     )
     
     # Chief Justice verdict
@@ -112,6 +116,7 @@ Transparency: {json.dumps(transparency)}
 Equity: {json.dumps(equity)}
 Legality: {json.dumps(legality)}
 Accountability: {json.dumps(accountability)}
+Social Justice: {json.dumps(social_justice)}
 
 Synthesize final verdict in JSON.
 """
@@ -125,7 +130,8 @@ Synthesize final verdict in JSON.
             "transparency": transparency,
             "equity": equity,
             "legality": legality,
-            "accountability": accountability
+            "accountability": accountability,
+            "social_justice": social_justice
         },
         "verdict": verdict
     }
@@ -177,6 +183,11 @@ async def websocket_analyze(websocket: WebSocket):
                     "Tracing approval chain...",
                     "Verifying signatory authority...",
                     "Checking audit trail..."
+                ],
+                "social_justice": [
+                    "Checking Minimum Wages Act compliance...",
+                    "Reviewing environmental impact...",
+                    "Verifying SC/ST sub-quota..."
                 ]
             }
 
@@ -195,10 +206,11 @@ async def websocket_analyze(websocket: WebSocket):
             run_agent_with_progress("transparency", TRANSPARENCY_AGENT_PROMPT),
             run_agent_with_progress("equity", EQUITY_AGENT_PROMPT),
             run_agent_with_progress("legality", LEGALITY_AGENT_PROMPT),
-            run_agent_with_progress("accountability", ACCOUNTABILITY_AGENT_PROMPT)
+            run_agent_with_progress("accountability", ACCOUNTABILITY_AGENT_PROMPT),
+            run_agent_with_progress("social_justice", SOCIAL_JUSTICE_AGENT_PROMPT)
         )
         
-        transparency, equity, legality, accountability = results
+        transparency, equity, legality, accountability, social_justice = results
 
         # Chief Justice
         await websocket.send_json({"status": "info", "message": "Chief Justice is deliberating on the verdict..."})
@@ -213,6 +225,7 @@ Transparency: {json.dumps(transparency)}
 Equity: {json.dumps(equity)}
 Legality: {json.dumps(legality)}
 Accountability: {json.dumps(accountability)}
+Social Justice: {json.dumps(social_justice)}
 
 Synthesize final verdict in JSON.
 """
@@ -225,7 +238,8 @@ Synthesize final verdict in JSON.
                 "transparency": transparency,
                 "equity": equity,
                 "legality": legality,
-                "accountability": accountability
+                "accountability": accountability,
+                "social_justice": social_justice
             },
             "verdict": verdict
         }
@@ -276,6 +290,54 @@ def sample_case_compliant():
         "selection_reason": "L1 Bidder and MSME",
         "documents_available": ["Tender Notice", "Technical Evaluation Report", "Financial Bid Summary", "Committee Approval"]
     }
+
+@app.post("/parse_tender", response_model=ProcurementCase)
+async def parse_tender(request: ParseTenderRequest):
+    """Parse raw tender text into structured JSON"""
+    prompt = f"""
+{TENDER_PARSER_PROMPT}
+
+RAW TENDER TEXT:
+{request.text}
+"""
+    response = await call_ollama(prompt)
+    parsed = parse_json_response(response)
+
+    # Basic validation/cleanup if needed
+    if "error" in parsed:
+        raise HTTPException(status_code=400, detail="Failed to parse tender text")
+
+    return parsed
+
+@app.post("/ask_bench", response_model=ChatResponse)
+async def ask_bench(request: ChatRequest):
+    """Chat with the Constitutional Bench about a specific verdict"""
+
+    context = f"""
+CASE ID: {request.case_data.tender_id}
+TITLE: {request.case_data.title}
+VERDICT: {request.verdict_data.verdict.verdict}
+SCORE: {request.verdict_data.verdict.constitutional_score}
+
+AGENT OPINIONS:
+{json.dumps(request.verdict_data.agent_opinions, indent=2)}
+
+CITIZEN SUMMARY:
+{request.verdict_data.verdict.citizen_summary}
+"""
+
+    prompt = f"""
+{BENCH_CHAT_PROMPT}
+
+CASE CONTEXT:
+{context}
+
+USER QUESTION:
+{request.question}
+"""
+
+    answer = await call_ollama(prompt)
+    return {"answer": answer}
 
 if __name__ == "__main__":
     import uvicorn

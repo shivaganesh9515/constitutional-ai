@@ -6,6 +6,7 @@ import ConstitutionalScore from '@/components/ConstitutionalScore'
 import LiveDebate from '@/components/LiveDebate'
 import RiskHeatmap from '@/components/RiskHeatmap'
 import CaseInputForm from '@/components/CaseInputForm'
+import CrossExamine from '@/components/CrossExamine'
 
 export default function Home() {
   const [selectedCase, setSelectedCase] = useState<any>(null)
@@ -19,14 +20,16 @@ export default function Home() {
     transparency: 'idle',
     equity: 'idle',
     legality: 'idle',
-    accountability: 'idle'
+    accountability: 'idle',
+    social_justice: 'idle'
   })
 
   const [agentMessages, setAgentMessages] = useState<any>({
     transparency: '',
     equity: '',
     legality: '',
-    accountability: ''
+    accountability: '',
+    social_justice: ''
   })
   
   const wsRef = useRef<WebSocket | null>(null)
@@ -42,7 +45,8 @@ export default function Home() {
         transparency: 'idle',
         equity: 'idle',
         legality: 'idle',
-        accountability: 'idle'
+        accountability: 'idle',
+        social_justice: 'idle'
       })
     } catch (e) {
       console.error("Failed to fetch sample case", e)
@@ -60,13 +64,15 @@ export default function Home() {
       transparency: 'idle',
       equity: 'idle',
       legality: 'idle',
-      accountability: 'idle'
+      accountability: 'idle',
+      social_justice: 'idle'
     })
     setAgentMessages({
       transparency: '',
       equity: '',
       legality: '',
-      accountability: ''
+      accountability: '',
+      social_justice: ''
     })
 
     const ws = new WebSocket('ws://localhost:8000/ws/analyze')
@@ -273,6 +279,9 @@ export default function Home() {
                      <RiskHeatmap opinions={results.agent_opinions} />
                   </div>
 
+                  {/* Cross Examination */}
+                  <CrossExamine caseData={selectedCase} results={results} />
+
                   {/* Final Agent Grid (Live Debate Style but static) */}
                   <div className="mt-8">
                     <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -283,10 +292,11 @@ export default function Home() {
                         transparency: 'completed',
                         equity: 'completed',
                         legality: 'completed',
-                        accountability: 'completed'
+                        accountability: 'completed',
+                        social_justice: 'completed'
                       }}
                       agentMessages={{
-                        transparency: '', equity: '', legality: '', accountability: ''
+                        transparency: '', equity: '', legality: '', accountability: '', social_justice: ''
                       }}
                       results={results}
                     />

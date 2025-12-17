@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Scale, Shield, Building2, BrainCircuit, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Eye, Scale, Shield, Building2, BrainCircuit, CheckCircle, AlertTriangle, Leaf } from 'lucide-react';
 
 interface AgentCardProps {
   name: string;
@@ -15,6 +15,7 @@ const AgentCard: React.FC<AgentCardProps> = ({ name, status, message, result }) 
       case 'equity': return <Scale className="w-6 h-6" />;
       case 'legality': return <Shield className="w-6 h-6" />;
       case 'accountability': return <Building2 className="w-6 h-6" />;
+      case 'social_justice': return <Leaf className="w-6 h-6" />;
       default: return <BrainCircuit className="w-6 h-6" />;
     }
   };
@@ -40,6 +41,11 @@ const AgentCard: React.FC<AgentCardProps> = ({ name, status, message, result }) 
       analyzing: 'border-orange-400 ring-orange-100',
       completed: 'border-orange-600 bg-orange-50',
       icon: 'text-orange-600'
+    },
+    social_justice: {
+      analyzing: 'border-emerald-400 ring-emerald-100',
+      completed: 'border-emerald-600 bg-emerald-50',
+      icon: 'text-emerald-600'
     },
     default: {
       analyzing: 'border-slate-400 ring-slate-100',
