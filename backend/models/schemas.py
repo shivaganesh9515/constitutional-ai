@@ -47,3 +47,14 @@ class AnalysisResult(BaseModel):
     case_id: str
     agent_opinions: dict
     verdict: CourtVerdict
+
+class ParseTenderRequest(BaseModel):
+    text: str
+
+class ChatRequest(BaseModel):
+    case_data: ProcurementCase
+    verdict_data: AnalysisResult
+    question: str
+
+class ChatResponse(BaseModel):
+    answer: str

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Upload, FileText, X, AlertCircle } from 'lucide-react';
+import { Upload, FileText, X, AlertCircle, Sparkles } from 'lucide-react';
+import SmartCaseInput from './SmartCaseInput';
 
 interface ProcurementCase {
   tender_id: string;
@@ -43,7 +44,7 @@ const DEFAULT_CASE: ProcurementCase = {
 };
 
 const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => {
-  const [mode, setMode] = useState<'form' | 'json'>('form');
+  const [mode, setMode] = useState<'form' | 'json' | 'smart'>('smart');
   const [formData, setFormData] = useState<ProcurementCase>(DEFAULT_CASE);
   const [jsonInput, setJsonInput] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -80,6 +81,16 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
 
       <div className="flex gap-4 mb-6">
         <button
+          onClick={() => setMode('smart')}
+          className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+            mode === 'smart'
+              ? 'bg-purple-600 text-white shadow-md'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" /> Smart Fill
+        </button>
+        <button
           onClick={() => setMode('form')}
           className={`px-4 py-2 rounded-lg font-medium transition ${
             mode === 'form'
@@ -87,7 +98,7 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
-          Form Input
+          Manual Form
         </button>
         <button
           onClick={() => setMode('json')}
@@ -108,7 +119,14 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
         </div>
       )}
 
-      {mode === 'json' ? (
+      {mode === 'smart' ? (
+        <SmartCaseInput
+          onParsed={(data) => {
+            setFormData(data);
+            setMode('form'); // Switch to form review after parsing
+          }}
+        />
+      ) : mode === 'json' ? (
         <div className="space-y-4">
           <textarea
             value={jsonInput}

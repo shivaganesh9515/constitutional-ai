@@ -18,6 +18,7 @@ interface RiskHeatmapProps {
     equity: AgentOpinion;
     legality: AgentOpinion;
     accountability: AgentOpinion;
+    social_justice: AgentOpinion;
   };
 }
 
@@ -27,6 +28,7 @@ const RiskHeatmap: React.FC<RiskHeatmapProps> = ({ opinions }) => {
     ...(opinions.equity?.findings || []),
     ...(opinions.legality?.findings || []),
     ...(opinions.accountability?.findings || []),
+    ...(opinions.social_justice?.findings || []),
   ];
 
   const getSeverityColor = (severity: string) => {
