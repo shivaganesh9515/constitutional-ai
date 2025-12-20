@@ -183,7 +183,7 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
               >
                 <option value="open_tender">Open Tender</option>
                 <option value="limited_tender">Limited Tender</option>
-                <option value="single_tender">Single Tender</option>
+                <option value="single_source">Single Source</option>
               </select>
             </div>
             <div>
@@ -194,6 +194,48 @@ const CaseInputForm: React.FC<CaseInputFormProps> = ({ onSubmit, onCancel }) => 
                 value={formData.department}
                 onChange={(e) => setFormData({...formData, department: e.target.value})}
                 className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Publication Date</label>
+              <input
+                type="date"
+                required
+                value={formData.publication_date}
+                onChange={(e) => setFormData({...formData, publication_date: e.target.value})}
+                className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Bid Opening Date</label>
+              <input
+                type="date"
+                required
+                value={formData.bid_opening_date}
+                onChange={(e) => setFormData({...formData, bid_opening_date: e.target.value})}
+                className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Selected Vendor</label>
+              <input
+                type="text"
+                required
+                value={formData.selected_vendor}
+                onChange={(e) => setFormData({...formData, selected_vendor: e.target.value})}
+                className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                placeholder="Name of awarded vendor"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-1">Selection Reason</label>
+              <input
+                type="text"
+                required
+                value={formData.selection_reason}
+                onChange={(e) => setFormData({...formData, selection_reason: e.target.value})}
+                className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Lowest bidder, MSME preference applied"
               />
             </div>
           </div>

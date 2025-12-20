@@ -34,10 +34,14 @@ export default function Home() {
   
   const wsRef = useRef<WebSocket | null>(null)
 
-  const fetchSampleCase = async (type: 'violation' | 'compliant') => {
+  const fetchSampleCase = async (type: 'violation' | 'compliant' | 'emergency') => {
     try {
-      const endpoint = type === 'violation' ? 'sample-case-violation' : 'sample-case-compliant'
-      const res = await fetch(`http://localhost:8000/${endpoint}`)
+      const endpoints: Record<string, string> = {
+        violation: 'sample-case-violation',
+        compliant: 'sample-case-compliant',
+        emergency: 'sample-case-emergency'
+      }
+      const res = await fetch(`http://localhost:8000/${endpoints[type]}`)
       const data = await res.json()
       setSelectedCase(data)
       setResults(null)
@@ -143,7 +147,7 @@ export default function Home() {
         ) : !selectedCase ? (
           <div className="py-12">
             <h2 className="text-3xl font-bold text-center mb-8 text-slate-800">Select a Case to Review</h2>
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               <button
                 onClick={() => fetchSampleCase('violation')}
                 className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition-all border-l-4 border-red-500 text-left"
@@ -168,6 +172,20 @@ export default function Home() {
                 <h3 className="text-xl font-bold text-slate-800 mb-2">Case B: The Fair Tender</h3>
                 <p className="text-slate-600 mb-4">₹15 Lakh AMC contract with MSME preference applied.</p>
                 <span className="inline-flex items-center text-green-600 font-medium group-hover:translate-x-1 transition">
+                  Load Case <FileText className="w-4 h-4 ml-2" />
+                </span>
+              </button>
+
+              <button
+                onClick={() => fetchSampleCase('emergency')}
+                className="group relative overflow-hidden rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition-all border-l-4 border-amber-500 text-left"
+              >
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition">
+                  <Shield className="w-24 h-24 text-amber-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Case C: Emergency Procurement</h3>
+                <p className="text-slate-600 mb-4">₹85 Lakh medical equipment via Single Source.</p>
+                <span className="inline-flex items-center text-amber-600 font-medium group-hover:translate-x-1 transition">
                   Load Case <FileText className="w-4 h-4 ml-2" />
                 </span>
               </button>

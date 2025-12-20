@@ -11,7 +11,7 @@ fi
 # 2. Start Ollama and pull model
 ollama serve &
 sleep 5
-ollama pull mistral:7b-instruct-v0.2-q4_K_M
+ollama pull llama3.2:3b
 
 # 3. Setup Backend
 cd backend

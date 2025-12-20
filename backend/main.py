@@ -291,6 +291,25 @@ def sample_case_compliant():
         "documents_available": ["Tender Notice", "Technical Evaluation Report", "Financial Bid Summary", "Committee Approval"]
     }
 
+@app.get("/sample-case-emergency")
+def sample_case_emergency():
+    """Return emergency single-source case (CONDITIONAL/REVIEW)"""
+    return {
+        "tender_id": "TENDER-2024-003",
+        "title": "Emergency Medical Equipment Procurement - COVID Ward",
+        "department": "Ministry of Health",
+        "estimated_value": 8500000,
+        "procurement_method": "single_source",
+        "publication_date": "2024-03-10",
+        "bid_opening_date": "2024-03-12",
+        "bids": [
+            {"vendor_name": "MediCorp India", "bid_amount": 8200000, "is_msme": False, "technical_score": 92}
+        ],
+        "selected_vendor": "MediCorp India",
+        "selection_reason": "Emergency procurement - only certified supplier",
+        "documents_available": ["Emergency Declaration", "Sole Supplier Certificate", "Tender Notice"]
+    }
+
 @app.post("/parse_tender", response_model=ProcurementCase)
 async def parse_tender(request: ParseTenderRequest):
     """Parse raw tender text into structured JSON"""
