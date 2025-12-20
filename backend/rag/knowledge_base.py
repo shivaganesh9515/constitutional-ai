@@ -13,7 +13,7 @@ GFR_RULES = {
         "threshold": 2500000,
         "min_days": 14
     },
-    "rule_161": {
+    "rule_161": {  
         "title": "MSME Preference",
         "content": "Micro and Small Enterprises shall be given preference. If MSME quotes within L1+15%, they shall be given opportunity to match L1 price. 25% procurement should be from MSMEs.",
         "preference_band": 0.15

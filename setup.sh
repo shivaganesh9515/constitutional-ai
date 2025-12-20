@@ -11,7 +11,7 @@ fi
 # 2. Start Ollama and pull model
 ollama serve &
 sleep 5
-ollama pull llama3.2:3b
+ollama pull gemma3:4b
 
 # 3. Setup Backend
 cd backend

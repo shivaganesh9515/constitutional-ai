@@ -64,7 +64,7 @@ Government procurement in India is a ₹6+ Lakh Crore annual process, but:
 │                                                ▼               │
 │                                     ┌──────────────────────┐   │
 │                                     │   Ollama (Local LLM) │   │
-│                                     │   llama3.2:3b        │   │
+│                                     │   gemma3:4b          │   │
 │                                     └──────────────────────┘   │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -96,7 +96,7 @@ chmod +x setup.sh
 
 ```powershell
 # Install Ollama and pull model
-ollama pull llama3.2:3b
+ollama pull gemma3:4b
 
 # Backend setup
 cd backend
@@ -235,7 +235,7 @@ constitutional-ai/
 | --------- | --------------------------------- |
 | Frontend  | Next.js 15, React 19, TailwindCSS |
 | Backend   | Python 3.10+, FastAPI, Pydantic   |
-| LLM       | Ollama with llama3.2:3b           |
+| LLM       | Ollama with gemma3:4b             |
 | Real-time | WebSockets                        |
 | Charts    | Recharts                          |
 
@@ -252,8 +252,6 @@ constitutional-ai/
 ---
 
 ## 👥 Team
-
-Built for **Google Hackathon 2024**
 
 ---
 
