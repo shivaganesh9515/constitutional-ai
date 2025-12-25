@@ -11,7 +11,7 @@ async def call_ollama(prompt: str, system_prompt: str = "") -> str:
     
     messages.append({"role": "user", "content": prompt})
     
-    async with httpx.AsyncClient(timeout=120.0) as client:
+    async with httpx.AsyncClient(timeout=300.0) as client:  # 5 min timeout for slow first-load
         # Use /api/chat instead of /api/generate context handling
         response = await client.post(
             f"{settings.OLLAMA_URL}/api/chat",

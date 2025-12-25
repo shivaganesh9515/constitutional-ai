@@ -241,7 +241,7 @@ constitutional-ai/
 | Charts    | Recharts                          |
 
 ---
-
+x
 ## 🔮 Future Roadmap
 
 - [ ] PDF/Document upload for automatic tender parsing

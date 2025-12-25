@@ -110,7 +110,7 @@ export default function Home() {
         setAnalyzing(false)
         ws.close()
       } else if (data.status === 'error') {
-        console.error("WS Error:", data.message)
+        
         setAnalyzing(false)
         ws.close()
       }

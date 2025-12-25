@@ -140,9 +140,13 @@ Synthesize final verdict in JSON.
 async def websocket_analyze(websocket: WebSocket):
     await websocket.accept()
     try:
+        print("[WS] Connection accepted, waiting for data...")
         data = await websocket.receive_text()
+        print(f"[WS] Received data: {data[:200]}...")  # First 200 chars
         case_dict = json.loads(data)
+        print(f"[WS] Parsed JSON successfully, validating case...")
         case = ProcurementCase(**case_dict)
+        print(f"[WS] Case validated: {case.tender_id}")
         
         await websocket.send_json({"status": "info", "message": "Case received. Initializing Constitutional Bench..."})
         await asyncio.sleep(1)
@@ -249,7 +253,11 @@ Synthesize final verdict in JSON.
     except WebSocketDisconnect:
         print("Client disconnected")
     except Exception as e:
-        await websocket.send_json({"status": "error", "message": str(e)})
+        import traceback
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        print(f"WebSocket Error: {error_msg}")
+        traceback.print_exc()
+        await websocket.send_json({"status": "error", "message": error_msg or "Unknown error occurred"})
 
 @app.get("/sample-case-violation")
 def sample_case_violation():
